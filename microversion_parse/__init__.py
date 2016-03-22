@@ -17,58 +17,53 @@ import collections
 STANDARD_HEADER = 'openstack-api-version'
 
 
-def get_version(headers, service_type=None, legacy_type=None):
+def get_version(headers, service_type=None, legacy_headers=None):
     """Parse a microversion out of headers
 
     :param headers: The headers of a request, dict or list
     :param service_type: The service type being looked for in the headers
-    :param legacy_type: The project name to use when looking for fallback
-                        headers.
+    :param legacy_headers: Other headers to look at for a version
     :returns: a version string or "latest"
     :raises: ValueError
+
+    If headers is not a dict we assume is an iterator of
+    tuple-like headers, which we will fold into a dict.
+
+    The flow is that we first look for the new standard singular
+    header:
+
+    * openstack-api-version: <service> <version>
+
+    If that's not present we fall back to the headers listed in
+    legacy_headers. These often look like this:
+
+    * openstack-<service>-api-version: <version>
+    * openstack-<legacy>-api-version: <version>
+    * x-openstack-<legacy>-api-version: <version>
+
+    Folded headers are joined by ','.
     """
-    # If headers is not a dict we assume is an iterator of
-    # tuple-like headers, which we will fold into a dict.
-    #
-    # The flow is that we first look for the new standard singular
-    # header:
-    # * openstack-api-version: <service> <version>
-    # If that's not present we fall back, in order, to:
-    # * openstack-<service>-api-version: <version>
-    # * openstack-<legacy>-api-version: <version>
-    # * x-openstack-<legacy>-api-version: <version>
-    #
-    # Folded headers are joined by ,
+
+    assert service_type, 'service type required'
+
     folded_headers = fold_headers(headers)
 
     version = check_standard_header(folded_headers, service_type)
     if version:
         return version
 
-    extra_headers = build_headers(service_type, legacy_type)
-    version = check_legacy_headers(folded_headers, extra_headers)
-    return version
+    if legacy_headers:
+        version = check_legacy_headers(folded_headers, legacy_headers)
+        return version
 
-
-def build_headers(service_type, legacy_type=None):
-    """Create the headers to be looked at."""
-    headers = [
-        'openstack-%s-api-version' % service_type
-    ]
-    if legacy_type:
-        legacy_headers = [
-            'openstack-%s-api-version' % legacy_type,
-            'x-openstack-%s-api-version' % legacy_type
-        ]
-        headers.extend(legacy_headers)
-    return headers
+    return None
 
 
 def check_legacy_headers(headers, legacy_headers):
     """Gather values from old headers."""
     for legacy_header in legacy_headers:
         try:
-            value = headers[legacy_header]
+            value = headers[legacy_header.lower()]
             return value.split(',')[-1].strip()
         except KeyError:
             pass
