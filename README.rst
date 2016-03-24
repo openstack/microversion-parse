@@ -1,5 +1,5 @@
 microversion_parse
-=================
+==================
 
 A simple parser for OpenStack microversion headers::
 
@@ -17,7 +17,7 @@ It processes microversion headers with the standard form::
 
 If provided with a ``legacy_headers`` argument, this is treated as
 a list of headers to check for microversions. Some examples of
-headers include:
+headers include::
 
     OpenStack-telemetry-api-version: 2.1
     OpenStack-nova-api-version: 2.1
