@@ -89,7 +89,9 @@ def check_standard_header(headers, service_type):
 
 def fold_headers(headers):
     """Turn a list of headers into a folded dict."""
-    if isinstance(headers, dict):
+    # If it behaves like a dict, return it. Webob uses objects which
+    # are not dicts, but behave like them.
+    if hasattr(headers, 'keys'):
         # TODO(cdent): canonicalize? (i.e. in lower())
         return headers
     header_dict = collections.defaultdict(list)
