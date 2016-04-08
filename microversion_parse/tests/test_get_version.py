@@ -194,10 +194,6 @@ class TestGetHeaders(testtools.TestCase):
             headers, service_type='compute')
         self.assertEqual(None, version)
 
-        self.assertRaises(AssertionError,
-                          microversion_parse.get_version,
-                          headers)
-
     def test_unfolded_service(self):
         headers = [
             ('header-one', 'alpha'),

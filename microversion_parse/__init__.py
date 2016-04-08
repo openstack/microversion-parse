@@ -19,7 +19,7 @@ import collections
 STANDARD_HEADER = 'openstack-api-version'
 
 
-def get_version(headers, service_type=None, legacy_headers=None):
+def get_version(headers, service_type, legacy_headers=None):
     """Parse a microversion out of headers
 
     :param headers: The headers of a request, dict or list
@@ -45,8 +45,6 @@ def get_version(headers, service_type=None, legacy_headers=None):
 
     Folded headers are joined by ','.
     """
-
-    assert service_type, 'service type required'
 
     folded_headers = fold_headers(headers)
 
