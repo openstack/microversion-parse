@@ -30,7 +30,8 @@ class TestWebobHeaders(testtools.TestCase):
 
         folded_headers = microversion_parse.fold_headers(headers)
         self.assertEqual(3, len(folded_headers))
-        self.assertEqual(set(headers.keys()), set(folded_headers.keys()))
+        self.assertEqual(set(['header-one', 'header-three', 'header-two']),
+                         set(folded_headers.keys()))
         self.assertEqual('gamma', folded_headers['header-three'])
 
     def test_simple_match(self):

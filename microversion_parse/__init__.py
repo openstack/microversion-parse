@@ -90,8 +90,7 @@ def fold_headers(headers):
     # If it behaves like a dict, return it. Webob uses objects which
     # are not dicts, but behave like them.
     if hasattr(headers, 'keys'):
-        # TODO(cdent): canonicalize? (i.e. in lower())
-        return headers
+        return dict((k.lower(), v) for k, v in headers.items())
     header_dict = collections.defaultdict(list)
     for header, value in headers:
         header_dict[header.lower()].append(value.strip())

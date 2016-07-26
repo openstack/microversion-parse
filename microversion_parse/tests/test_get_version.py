@@ -216,3 +216,12 @@ class TestGetHeaders(testtools.TestCase):
             headers, service_type='compute',
             legacy_headers=['x-openstack-nova-api-version'])
         self.assertEqual('2.0', version)
+
+    def test_capitalized_headers(self):
+        headers = {
+            'X-Openstack-Ironic-Api-Version': '123.456'
+        }
+        version = microversion_parse.get_version(
+            headers, service_type='ironic',
+            legacy_headers=['X-Openstack-Ironic-Api-Version'])
+        self.assertEqual('123.456', version)
