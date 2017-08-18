@@ -16,6 +16,7 @@ __version__ = '0.1.1'
 import collections
 
 
+ENVIRON_HTTP_HEADER_FMT = 'http_{}'
 STANDARD_HEADER = 'openstack-api-version'
 
 
@@ -63,7 +64,7 @@ def check_legacy_headers(headers, legacy_headers):
     """Gather values from old headers."""
     for legacy_header in legacy_headers:
         try:
-            value = headers[legacy_header.lower()]
+            value = _extract_header_value(headers, legacy_header.lower())
             return value.split(',')[-1].strip()
         except KeyError:
             pass
@@ -73,7 +74,7 @@ def check_legacy_headers(headers, legacy_headers):
 def check_standard_header(headers, service_type):
     """Parse the standard header to get value for service."""
     try:
-        header = headers[STANDARD_HEADER]
+        header = _extract_header_value(headers, STANDARD_HEADER)
         for header_value in reversed(header.split(',')):
             try:
                 service, version = header_value.strip().split(None, 1)
@@ -100,3 +101,31 @@ def fold_headers(headers):
         folded_headers[header] = ','.join(value)
 
     return folded_headers
+
+
+def headers_from_wsgi_environ(environ):
+    """Extract all the HTTP_ keys and values from environ to a new dict.
+
+    Note that this does not change the keys in any way in the returned
+    dict. Nor is the incoming environ modified.
+
+    :param environ: A PEP 3333 compliant WSGI environ dict.
+    """
+    return {key: environ[key] for key in environ if key.startswith('HTTP_')}
+
+
+def _extract_header_value(headers, header_name):
+    """Get the value of a header.
+
+    The provided headers is a dict. If a key doesn't exist for
+    header_name, try using the WSGI environ form of the name.
+
+    Raises KeyError if neither key is found.
+    """
+    try:
+        value = headers[header_name]
+    except KeyError:
+        wsgi_header_name = ENVIRON_HTTP_HEADER_FMT.format(
+            header_name.replace('-', '_'))
+        value = headers[wsgi_header_name]
+    return value

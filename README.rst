@@ -11,6 +11,12 @@ A simple parser for OpenStack microversion headers::
         headers, service_type='compute',
         legacy_headers=['x-openstack-nova-api-version'])
 
+    # If headers are not already available, a dict of headers
+    # can be extracted from the WSGI environ
+    headers = microversion_parse.headers_from_wsgi_environ(environ)
+    version = microversion_parse.get_version(
+        headers, service_type='placement')
+
 It processes microversion headers with the standard form::
 
     OpenStack-API-Version: compute 2.1
