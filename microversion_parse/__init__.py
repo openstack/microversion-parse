@@ -20,6 +20,20 @@ ENVIRON_HTTP_HEADER_FMT = 'http_{}'
 STANDARD_HEADER = 'openstack-api-version'
 
 
+class Version(collections.namedtuple('Version', 'major minor')):
+    """A namedtuple containing major and minor values.
+
+    Since it is a tuple, it is automatically comparable.
+    """
+
+    def __str__(self):
+        return '%s.%s' % (self.major, self.minor)
+
+    def matches(self, min_version, max_version):
+        """Is this version within min_version and max_version."""
+        return min_version <= self <= max_version
+
+
 def get_version(headers, service_type, legacy_headers=None):
     """Parse a microversion out of headers
 
@@ -129,3 +143,56 @@ def _extract_header_value(headers, header_name):
             header_name.replace('-', '_'))
         value = headers[wsgi_header_name]
     return value
+
+
+def parse_version_string(version_string):
+    """Turn a version string into a Version
+
+    :param version_string: A string of two numerals, X.Y.
+    :returns: a Version
+    :raises: TypeError
+    """
+    try:
+        # The combination of int and a limited split with the
+        # named tuple means that this incantation will raise
+        # ValueError, TypeError or AttributeError when the incoming
+        # data is poorly formed but will, however, naturally adapt to
+        # extraneous whitespace.
+        return Version(*(int(value) for value
+                         in version_string.split('.', 1)))
+    except (ValueError, TypeError, AttributeError) as exc:
+        raise TypeError('invalid version string: %s; %s' % (
+            version_string, exc))
+
+
+def extract_version(headers, service_type, versions_list):
+    """Extract the microversion from the headers.
+
+    There may be multiple headers and some which don't match our
+    service.
+
+    If no version is found then the extracted version is the minimum
+    available version.
+
+    :param headers: Request headers as dict list or WSGI environ
+    :param service_type: The service_type as a string
+    :param versions_list: List of all possible microversions as strings,
+                          sorted from earliest to latest version.
+    :returns: a Version
+    :raises: ValueError
+    """
+    found_version = get_version(headers, service_type=service_type)
+    min_version_string = versions_list[0]
+    max_version_string = versions_list[-1]
+
+    # If there was no version found in the headers, choose the minimum
+    # available version.
+    version_string = found_version or min_version_string
+    if version_string == 'latest':
+        version_string = max_version_string
+    request_version = parse_version_string(version_string)
+    # We need a version that is in versions_list. This gives us the option
+    # to administratively disable a version if we really need to.
+    if str(request_version) in versions_list:
+        return request_version
+    raise ValueError('Unacceptable version header: %s' % version_string)
