@@ -1,0 +1,15 @@
+# tests that the SimpleWSGI app is present
+
+tests:
+
+- name: get good
+  GET: /good
+  status: 200
+  response_strings:
+      - good
+
+- name: get bad
+  GET: /bad
+  status: 404
+  response_strings:
+      - not found

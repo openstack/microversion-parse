@@ -1,9 +1,12 @@
 microversion_parse
 ==================
 
-A small set of functions to manage OpenStack microversion headers that can
+A small set of functions to manage OpenStack `microversion`_ headers that can
 be used in middleware, application handlers and decorators to effectively
 manage microversions.
+
+Also included, in the ``middleware`` module, is a ``MicroversionMiddleware``
+that will process incoming microversion headers.
 
 get_version
 -----------
@@ -71,3 +74,42 @@ a microversion for a given service type in a collection of headers::
 If the found version is not in versions_list a ``ValueError`` is raised.
 
 Note that ``extract_version`` does not support ``legacy_headers``.
+
+MicroversionMiddleware
+----------------------
+
+A WSGI middleware that can wrap an application that needs to be microversion
+aware. The application will get a WSGI environ with a
+'SERVICE_TYPE.microversion' key that has a value of the microversion found at
+an 'openstack-api-version' header that matches SERVICE_TYPE.  If no header is
+found, the minimum microversion will be set. If the special keyword 'latest' is
+used, the maximum microversion will be set.
+
+If the requested microversion is not available a 406 response is returned.
+
+If there is an error parsing a provided header, a 400 response is returned.
+
+Otherwise the application is called.
+
+The middleware is configured when it is created. Three parameters are required:
+
+app
+  The next WSGI middleware or application in the stack.
+
+service_type
+  The service type of the application, used to identify microversion headers.
+
+versions_list
+  An ordered list of legitimate microversions (as strings) for the application.
+  It's assumed that any application that is using microversions will have such
+  a list for its own housekeeping and documentation.
+
+For example::
+
+    def app():
+        app = middleware.MicroversionMiddleware(
+            MyWSGIApp(), 'cats', ['1.0', '1.1', '1.2'])
+        return app
+
+
+.. _microversion: http://specs.openstack.org/openstack/api-wg/guidelines/microversion_specification.html

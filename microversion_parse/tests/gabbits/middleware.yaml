@@ -1,0 +1,75 @@
+# Tests that the middleware does microversioning as we expect
+# The min version of the service is 1.0, the max is 1.2,
+# the service type is "cats" (because the internet is for cats).
+
+defaults:
+    request_headers:
+        # We must guard against webob requiring an accept header.
+        # We don't want to do this in the middleware itself as
+        # we don't know what the application would prefer as a
+        # default.
+        accept: application/json
+
+tests:
+
+- name: min default
+  GET: /good
+  response_headers:
+      openstack-api-version: cats 1.0
+
+- name: max latest
+  GET: /good
+  request_headers:
+      openstack-api-version: cats latest
+  response_headers:
+      openstack-api-version: cats 1.2
+
+- name: explict
+  GET: /good
+  request_headers:
+      openstack-api-version: cats 1.1
+  response_headers:
+      openstack-api-version: cats 1.1
+
+- name: out of range
+  GET: /good
+  request_headers:
+      openstack-api-version: cats 1.9
+  status: 406
+  response_strings:
+      - Unacceptable version header
+
+- name: invalid format
+  GET: /good
+  request_headers:
+      openstack-api-version: cats 1.9.5
+  status: 400
+  response_strings:
+      - invalid literal
+
+- name: different service
+  desc: end up with default microversion
+  GET: /good
+  request_headers:
+      openstack-api-version: dogs 1.9
+  response_headers:
+      openstack-api-version: cats 1.0
+
+- name: multiple services
+  GET: /good
+  request_headers:
+      openstack-api-version: dogs 1.9, cats 1.1
+  response_headers:
+      openstack-api-version: cats 1.1
+
+- name: header present on exception
+  GET: /bad
+  request_headers:
+      openstack-api-version: dogs 1.9, cats 1.1
+  response_headers:
+      openstack-api-version: cats 1.1
+  status: 404
+  response_strings:
+      - /bad not found
+
+
