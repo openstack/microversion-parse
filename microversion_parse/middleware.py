@@ -37,7 +37,8 @@ class MicroversionMiddleware(object):
     Otherwise the application is called.
     """
 
-    def __init__(self, application, service_type, versions):
+    def __init__(self, application, service_type, versions,
+                 json_error_formatter=None):
         """Create the WSGI middleware.
 
         :param application: The application hosting the service.
@@ -45,11 +46,14 @@ class MicroversionMiddleware(object):
                              of the application.
         :param versions: An ordered list of legitimate versions for the
                          application.
+        :param json_error_formatter: A Webob exception error formatter.
+                                     See Webob for details.
         """
         self.application = application
         self.service_type = service_type
         self.microversion_environ = '%s.microversion' % service_type
         self.versions = versions
+        self.json_error_formatter = json_error_formatter
 
     @webob.dec.wsgify
     def __call__(self, req):
@@ -57,13 +61,16 @@ class MicroversionMiddleware(object):
             microversion = microversion_parse.extract_version(
                 req.headers, self.service_type, self.versions)
         # TODO(cdent): These error response are not formatted according to
-        # api-sig guidelines.
+        # api-sig guidelines, unless a json_error_formatter is provided
+        # that can do it. For an example, see the placement service.
         except ValueError as exc:
             raise webob.exc.HTTPNotAcceptable(
-                ('Invalid microversion: %(error)s') % {'error': exc})
+                ('Invalid microversion: %(error)s') % {'error': exc},
+                json_formatter=self.json_error_formatter)
         except TypeError as exc:
             raise webob.exc.HTTPBadRequest(
-                ('Invalid microversion: %(error)s') % {'error': exc})
+                ('Invalid microversion: %(error)s') % {'error': exc},
+                json_formatter=self.json_error_formatter)
 
         req.environ[self.microversion_environ] = microversion
         microversion_header = '%s %s' % (self.service_type, microversion)

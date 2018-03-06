@@ -104,6 +104,12 @@ versions_list
   It's assumed that any application that is using microversions will have such
   a list for its own housekeeping and documentation.
 
+One named parameter is optional:
+
+json_error_formatter
+  A Webob error formatter that can be used to structure the response when JSON
+  is expected.
+
 For example::
 
     def app():
