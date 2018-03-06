@@ -42,6 +42,26 @@ class TestVersion(testtools.TestCase):
 
         self.assertTrue(self.version.matches(min_version, max_version))
 
+    def test_version_matches_no_extremes(self):
+        """If no extremes are present, never match."""
+        self.assertFalse(self.version.matches())
+
+    def test_version_zero_can_match(self):
+        """If a version is '0.0' we want to it be able to match."""
+        version = microversion_parse.Version(0, 0)
+        min_version = microversion_parse.Version(0, 0)
+        max_version = microversion_parse.Version(0, 0)
+        version.min_version = min_version
+        version.max_version = max_version
+
+        self.assertTrue(version.matches())
+
+    def test_version_zero_no_defaults(self):
+        """If a version is '0.0' we want to it be able to match."""
+        version = microversion_parse.Version(0, 0)
+
+        self.assertFalse(version.matches())
+
     def test_version_init_failure(self):
         self.assertRaises(TypeError, microversion_parse.Version, 1, 2, 3)
 
@@ -106,6 +126,24 @@ class TestExtractVersion(testtools.TestCase):
         version = microversion_parse.extract_version(
             self.headers, 'service3', self.version_list)
         self.assertEqual((2, 4), version)
+
+    def test_min_max_extract(self):
+        version = microversion_parse.extract_version(
+            self.headers, 'service1', self.version_list)
+
+        # below min
+        self.assertFalse(version.matches((1, 3)))
+        # at min
+        self.assertTrue(version.matches((1, 2)))
+        # within extremes
+        self.assertTrue(version.matches())
+        # explicit max
+        self.assertTrue(version.matches(max_version=(2, 3)))
+        # explicit min
+        self.assertFalse(version.matches(min_version=(2, 3)))
+        # explicit both
+        self.assertTrue(version.matches(min_version=(0, 3),
+                                        max_version=(1, 5)))
 
     def test_version_disabled(self):
         self.assertRaises(ValueError, microversion_parse.extract_version,

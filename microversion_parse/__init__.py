@@ -26,11 +26,26 @@ class Version(collections.namedtuple('Version', 'major minor')):
     Since it is a tuple, it is automatically comparable.
     """
 
+    def __new__(cls, major, minor):
+        """Add mix and max version attributes to the tuple."""
+        self = super(Version, cls).__new__(cls, major, minor)
+        self.max_version = (-1, 0)
+        self.min_version = (-1, 0)
+        return self
+
     def __str__(self):
         return '%s.%s' % (self.major, self.minor)
 
-    def matches(self, min_version, max_version):
-        """Is this version within min_version and max_version."""
+    def matches(self, min_version=None, max_version=None):
+        """Is this version within min_version and max_version.
+        """
+        # NOTE(cdent): min_version and max_version are expected
+        # to be set by the code that is creating the Version, if
+        # they are known.
+        if min_version is None:
+            min_version = self.min_version
+        if max_version is None:
+            max_version = self.max_version
         return min_version <= self <= max_version
 
 
@@ -178,7 +193,8 @@ def extract_version(headers, service_type, versions_list):
     :param service_type: The service_type as a string
     :param versions_list: List of all possible microversions as strings,
                           sorted from earliest to latest version.
-    :returns: a Version
+    :returns: a Version with the optional min_version and max_version
+              attributes set.
     :raises: ValueError
     """
     found_version = get_version(headers, service_type=service_type)
@@ -191,6 +207,8 @@ def extract_version(headers, service_type, versions_list):
     if version_string == 'latest':
         version_string = max_version_string
     request_version = parse_version_string(version_string)
+    request_version.max_version = parse_version_string(max_version_string)
+    request_version.min_version = parse_version_string(min_version_string)
     # We need a version that is in versions_list. This gives us the option
     # to administratively disable a version if we really need to.
     if str(request_version) in versions_list:
