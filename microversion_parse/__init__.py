@@ -117,8 +117,10 @@ def fold_headers(headers):
     """Turn a list of headers into a folded dict."""
     # If it behaves like a dict, return it. Webob uses objects which
     # are not dicts, but behave like them.
-    if hasattr(headers, 'keys'):
+    try:
         return dict((k.lower(), v) for k, v in headers.items())
+    except AttributeError:
+        pass
     header_dict = collections.defaultdict(list)
     for header, value in headers:
         header_dict[header.lower()].append(value.strip())
