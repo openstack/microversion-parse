@@ -57,7 +57,9 @@ class TestVersion(testtools.TestCase):
         self.assertTrue(version.matches())
 
     def test_version_zero_no_defaults(self):
-        """If a version is '0.0' we want to it be able to match."""
+        """Any version, even 0.0, should never match without a min
+        and max being set.
+        """
         version = microversion_parse.Version(0, 0)
 
         self.assertFalse(version.matches())
