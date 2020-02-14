@@ -25,7 +25,7 @@ class Version(collections.namedtuple('Version', 'major minor')):
     """
 
     def __new__(cls, major, minor):
-        """Add mix and max version attributes to the tuple."""
+        """Add min and max version attributes to the tuple."""
         self = super(Version, cls).__new__(cls, major, minor)
         self.max_version = (-1, 0)
         self.min_version = (-1, 0)
