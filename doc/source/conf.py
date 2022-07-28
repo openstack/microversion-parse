@@ -48,8 +48,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'microversion-parse'
-copyright = u'2016, OpenStack'
+project = 'microversion-parse'
+copyright = '2016, OpenStack'
 author = u'OpenStack'
 
 # openstackdocstheme options
@@ -90,8 +90,8 @@ latex_documents = [
     (
         master_doc,
         'microversion-parse.tex',
-        u'microversion-parse Documentation',
-        u'OpenStack',
+        'microversion-parse Documentation',
+        'OpenStack',
         'manual'
     ),
 ]
