@@ -26,17 +26,16 @@ class Version(collections.namedtuple('Version', 'major minor')):
 
     def __new__(cls, major, minor):
         """Add min and max version attributes to the tuple."""
-        self = super(Version, cls).__new__(cls, major, minor)
+        self = super().__new__(cls, major, minor)
         self.max_version = (-1, 0)
         self.min_version = (-1, 0)
         return self
 
     def __str__(self):
-        return '%s.%s' % (self.major, self.minor)
+        return f'{self.major}.{self.minor}'
 
     def matches(self, min_version=None, max_version=None):
-        """Is this version within min_version and max_version.
-        """
+        """Is this version within min_version and max_version."""
         # NOTE(cdent): min_version and max_version are expected
         # to be set by the code that is creating the Version, if
         # they are known.
@@ -155,7 +154,8 @@ def _extract_header_value(headers, header_name):
         value = headers[header_name]
     except KeyError:
         wsgi_header_name = ENVIRON_HTTP_HEADER_FMT.format(
-            header_name.replace('-', '_'))
+            header_name.replace('-', '_')
+        )
         value = headers[wsgi_header_name]
     return value
 
@@ -173,11 +173,9 @@ def parse_version_string(version_string):
         # ValueError, TypeError or AttributeError when the incoming
         # data is poorly formed but will, however, naturally adapt to
         # extraneous whitespace.
-        return Version(*(int(value) for value
-                         in version_string.split('.', 1)))
+        return Version(*(int(value) for value in version_string.split('.', 1)))
     except (ValueError, TypeError, AttributeError) as exc:
-        raise TypeError('invalid version string: %s; %s' % (
-            version_string, exc))
+        raise TypeError(f'invalid version string: {version_string}; {exc}')
 
 
 def extract_version(headers, service_type, versions_list):
@@ -213,4 +211,4 @@ def extract_version(headers, service_type, versions_list):
     # to administratively disable a version if we really need to.
     if str(request_version) in versions_list:
         return request_version
-    raise ValueError('Unacceptable version header: %s' % version_string)
+    raise ValueError(f'Unacceptable version header: {version_string}')

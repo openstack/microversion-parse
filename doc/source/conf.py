@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (C) 2020 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -33,7 +32,7 @@
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
-    'openstackdocstheme'
+    'openstackdocstheme',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,7 +49,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'microversion-parse'
 copyright = '2016, OpenStack'
-author = u'OpenStack'
+author = 'OpenStack'
 
 # openstackdocstheme options
 repository_name = 'openstack/microversion-parse'
@@ -92,7 +91,7 @@ latex_documents = [
         'microversion-parse.tex',
         'microversion-parse Documentation',
         'OpenStack',
-        'manual'
+        'manual',
     ),
 ]
 
@@ -104,9 +103,9 @@ man_pages = [
     (
         master_doc,
         'microversion-parse',
-        u'microversion-parse Documentation',
+        'microversion-parse Documentation',
         [author],
-        1
+        1,
     )
 ]
 
@@ -120,11 +119,11 @@ texinfo_documents = [
     (
         master_doc,
         'microversion-parse',
-        u'microversion-parse Documentation',
+        'microversion-parse Documentation',
         author,
         'microversion-parse',
         'One line description of project.',
-        'Miscellaneous'
+        'Miscellaneous',
     ),
 ]
 

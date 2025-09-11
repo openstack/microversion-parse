@@ -17,7 +17,6 @@ import microversion_parse
 
 
 class TestFoldHeaders(testtools.TestCase):
-
     def test_dict_headers(self):
         headers = {
             'header-one': 'alpha',
@@ -39,20 +38,19 @@ class TestFoldHeaders(testtools.TestCase):
 
         folded_headers = microversion_parse.fold_headers(headers)
         self.assertEqual(2, len(folded_headers))
-        self.assertEqual(set(['header-one', 'header-two']),
-                         set(folded_headers.keys()))
+        self.assertEqual(
+            set(['header-one', 'header-two']), set(folded_headers.keys())
+        )
         self.assertEqual('alpha,gamma', folded_headers['header-one'])
 
     def test_bad_headers(self):
         headers = 'wow this is not a headers'
-        self.assertRaises(ValueError, microversion_parse.fold_headers,
-                          headers)
+        self.assertRaises(ValueError, microversion_parse.fold_headers, headers)
 
     # TODO(cdent): Test with request objects from frameworks.
 
 
 class TestStandardHeader(testtools.TestCase):
-
     def test_simple_match(self):
         headers = {
             'header-one': 'alpha',
@@ -88,8 +86,7 @@ class TestStandardHeader(testtools.TestCase):
             'openstack-api-version': 'network 5.9 ',
             'header-two': 'beta',
         }
-        version = microversion_parse.check_standard_header(
-            headers, 'compute')
+        version = microversion_parse.check_standard_header(headers, 'compute')
         self.assertEqual(None, version)
 
     def test_match_multiple_services(self):
@@ -98,11 +95,11 @@ class TestStandardHeader(testtools.TestCase):
             'openstack-api-version': 'network 5.9 ,compute 2.1,telemetry 7.8',
             'header-two': 'beta',
         }
-        version = microversion_parse.check_standard_header(
-            headers, 'compute')
+        version = microversion_parse.check_standard_header(headers, 'compute')
         self.assertEqual('2.1', version)
         version = microversion_parse.check_standard_header(
-            headers, 'telemetry')
+            headers, 'telemetry'
+        )
         self.assertEqual('7.8', version)
 
     def test_match_multiple_same_service(self):
@@ -111,13 +108,11 @@ class TestStandardHeader(testtools.TestCase):
             'openstack-api-version': 'compute 5.9 ,compute 2.1,compute 7.8',
             'header-two': 'beta',
         }
-        version = microversion_parse.check_standard_header(
-            headers, 'compute')
+        version = microversion_parse.check_standard_header(headers, 'compute')
         self.assertEqual('7.8', version)
 
 
 class TestLegacyHeaders(testtools.TestCase):
-
     def test_legacy_headers_straight(self):
         headers = {
             'header-one': 'alpha',
@@ -125,8 +120,10 @@ class TestLegacyHeaders(testtools.TestCase):
             'header-two': 'beta',
         }
         version = microversion_parse.get_version(
-            headers, service_type='compute',
-            legacy_headers=['openstack-CoMpUte-api-version'])
+            headers,
+            service_type='compute',
+            legacy_headers=['openstack-CoMpUte-api-version'],
+        )
         self.assertEqual('2.1', version)
 
     def test_legacy_headers_folded(self):
@@ -136,8 +133,10 @@ class TestLegacyHeaders(testtools.TestCase):
             'header-two': 'beta',
         }
         version = microversion_parse.get_version(
-            headers, service_type='compute',
-            legacy_headers=['openstack-compute-api-version'])
+            headers,
+            service_type='compute',
+            legacy_headers=['openstack-compute-api-version'],
+        )
         self.assertEqual('9.2', version)
 
     def test_older_legacy_headers(self):
@@ -147,9 +146,13 @@ class TestLegacyHeaders(testtools.TestCase):
             'header-two': 'beta',
         }
         version = microversion_parse.get_version(
-            headers, service_type='compute',
-            legacy_headers=['openstack-nova-api-version',
-                            'x-openstack-nova-api-version'])
+            headers,
+            service_type='compute',
+            legacy_headers=[
+                'openstack-nova-api-version',
+                'x-openstack-nova-api-version',
+            ],
+        )
         # We don't do x- for service types.
         self.assertEqual('9.2', version)
 
@@ -161,19 +164,26 @@ class TestLegacyHeaders(testtools.TestCase):
             'header-two': 'beta',
         }
         version = microversion_parse.get_version(
-            headers, service_type='compute',
-            legacy_headers=['openstack-compute-api-version',
-                            'x-openstack-nova-api-version'])
+            headers,
+            service_type='compute',
+            legacy_headers=[
+                'openstack-compute-api-version',
+                'x-openstack-nova-api-version',
+            ],
+        )
         self.assertEqual('3.7', version)
         version = microversion_parse.get_version(
-            headers, service_type='compute',
-            legacy_headers=['x-openstack-nova-api-version',
-                            'openstack-compute-api-version'])
+            headers,
+            service_type='compute',
+            legacy_headers=[
+                'x-openstack-nova-api-version',
+                'openstack-compute-api-version',
+            ],
+        )
         self.assertEqual('9.2', version)
 
 
 class TestGetHeaders(testtools.TestCase):
-
     def test_preference(self):
         headers = {
             'header-one': 'alpha',
@@ -183,15 +193,20 @@ class TestGetHeaders(testtools.TestCase):
             'header-two': 'beta',
         }
         version = microversion_parse.get_version(
-            headers, service_type='compute',
-            legacy_headers=['openstack-compute-api-version',
-                            'x-openstack-nova-api-version'])
+            headers,
+            service_type='compute',
+            legacy_headers=[
+                'openstack-compute-api-version',
+                'x-openstack-nova-api-version',
+            ],
+        )
         self.assertEqual('11.12', version)
 
     def test_no_headers(self):
         headers = {}
         version = microversion_parse.get_version(
-            headers, service_type='compute')
+            headers, service_type='compute'
+        )
         self.assertEqual(None, version)
 
     def test_unfolded_service(self):
@@ -202,7 +217,8 @@ class TestGetHeaders(testtools.TestCase):
             ('openstack-api-version', '3.0'),
         ]
         version = microversion_parse.get_version(
-            headers, service_type='compute')
+            headers, service_type='compute'
+        )
         self.assertEqual('2.0', version)
 
     def test_unfolded_in_name(self):
@@ -213,15 +229,17 @@ class TestGetHeaders(testtools.TestCase):
             ('openstack-telemetry-api-version', '3.0'),
         ]
         version = microversion_parse.get_version(
-            headers, service_type='compute',
-            legacy_headers=['x-openstack-nova-api-version'])
+            headers,
+            service_type='compute',
+            legacy_headers=['x-openstack-nova-api-version'],
+        )
         self.assertEqual('2.0', version)
 
     def test_capitalized_headers(self):
-        headers = {
-            'X-Openstack-Ironic-Api-Version': '123.456'
-        }
+        headers = {'X-Openstack-Ironic-Api-Version': '123.456'}
         version = microversion_parse.get_version(
-            headers, service_type='ironic',
-            legacy_headers=['X-Openstack-Ironic-Api-Version'])
+            headers,
+            service_type='ironic',
+            legacy_headers=['X-Openstack-Ironic-Api-Version'],
+        )
         self.assertEqual('123.456', version)

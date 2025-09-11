@@ -32,7 +32,7 @@ VERSIONS = [
 ]
 
 
-class SimpleWSGI(object):
+class SimpleWSGI:
     """A WSGI application that can be contiained within a middlware."""
 
     def __call__(self, environ, start_response):
@@ -41,12 +41,13 @@ class SimpleWSGI(object):
             start_response('200 OK', [('content-type', 'text/plain')])
             return [b'good']
 
-        raise webob.exc.HTTPNotFound('%s not found' % path_info)
+        raise webob.exc.HTTPNotFound(f'{path_info} not found')
 
 
 def app():
     app = middleware.MicroversionMiddleware(
-            SimpleWSGI(), SERVICE_TYPE, VERSIONS)
+        SimpleWSGI(), SERVICE_TYPE, VERSIONS
+    )
     return app
 
 
@@ -54,4 +55,5 @@ def load_tests(loader, tests, pattern):
     """Provide a TestSuite to the discovery process."""
     test_dir = os.path.join(os.path.dirname(__file__), TESTS_DIR)
     return driver.build_tests(
-        test_dir, loader, test_loader_name=__name__, intercept=app)
+        test_dir, loader, test_loader_name=__name__, intercept=app
+    )

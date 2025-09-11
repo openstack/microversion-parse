@@ -18,9 +18,8 @@ import microversion_parse
 
 
 class TestVersion(testtools.TestCase):
-
     def setUp(self):
-        super(TestVersion, self).setUp()
+        super().setUp()
         self.version = microversion_parse.Version(1, 5)
 
     def test_version_is_tuple(self):
@@ -69,7 +68,6 @@ class TestVersion(testtools.TestCase):
 
 
 class TestParseVersionString(testtools.TestCase):
-
     def test_good_version(self):
         version = microversion_parse.parse_version_string('1.1')
         self.assertEqual((1, 1), version)
@@ -81,57 +79,68 @@ class TestParseVersionString(testtools.TestCase):
         self.assertEqual(microversion_parse.Version(1, 1), version)
 
     def test_non_numeric(self):
-        self.assertRaises(TypeError,
-                          microversion_parse.parse_version_string,
-                          'hello')
+        self.assertRaises(
+            TypeError, microversion_parse.parse_version_string, 'hello'
+        )
 
     def test_mixed_alphanumeric(self):
-        self.assertRaises(TypeError,
-                          microversion_parse.parse_version_string,
-                          '1.a')
+        self.assertRaises(
+            TypeError, microversion_parse.parse_version_string, '1.a'
+        )
 
     def test_too_many_numeric(self):
-        self.assertRaises(TypeError,
-                          microversion_parse.parse_version_string,
-                          '1.1.1')
+        self.assertRaises(
+            TypeError, microversion_parse.parse_version_string, '1.1.1'
+        )
 
     def test_not_string(self):
-        self.assertRaises(TypeError,
-                          microversion_parse.parse_version_string,
-                          1.1)
+        self.assertRaises(
+            TypeError, microversion_parse.parse_version_string, 1.1
+        )
 
 
 class TestExtractVersion(testtools.TestCase):
-
     def setUp(self):
-        super(TestExtractVersion, self).setUp()
+        super().setUp()
         self.headers = [
             ('OpenStack-API-Version', 'service1 1.2'),
             ('OpenStack-API-Version', 'service2 1.5'),
             ('OpenStack-API-Version', 'service3 latest'),
             ('OpenStack-API-Version', 'service4 2.5'),
         ]
-        self.version_list = ['1.1', '1.2', '1.3', '1.4',
-                             '2.1', '2.2', '2.3', '2.4']
+        self.version_list = [
+            '1.1',
+            '1.2',
+            '1.3',
+            '1.4',
+            '2.1',
+            '2.2',
+            '2.3',
+            '2.4',
+        ]
 
     def test_simple_extract(self):
         version = microversion_parse.extract_version(
-            self.headers, 'service1', self.version_list)
+            self.headers, 'service1', self.version_list
+        )
         self.assertEqual((1, 2), version)
 
     def test_default_min(self):
         version = microversion_parse.extract_version(
-            self.headers, 'notlisted', self.version_list)
+            self.headers, 'notlisted', self.version_list
+        )
         self.assertEqual((1, 1), version)
 
     def test_latest(self):
         version = microversion_parse.extract_version(
-            self.headers, 'service3', self.version_list)
+            self.headers, 'service3', self.version_list
+        )
         self.assertEqual((2, 4), version)
 
     def test_min_max_extract(self):
         version = microversion_parse.extract_version(
-            self.headers, 'service1', self.version_list)
+            self.headers, 'service1', self.version_list
+        )
 
         # below min
         self.assertFalse(version.matches((1, 3)))
@@ -144,13 +153,24 @@ class TestExtractVersion(testtools.TestCase):
         # explicit min
         self.assertFalse(version.matches(min_version=(2, 3)))
         # explicit both
-        self.assertTrue(version.matches(min_version=(0, 3),
-                                        max_version=(1, 5)))
+        self.assertTrue(
+            version.matches(min_version=(0, 3), max_version=(1, 5))
+        )
 
     def test_version_disabled(self):
-        self.assertRaises(ValueError, microversion_parse.extract_version,
-                          self.headers, 'service2', self.version_list)
+        self.assertRaises(
+            ValueError,
+            microversion_parse.extract_version,
+            self.headers,
+            'service2',
+            self.version_list,
+        )
 
     def test_version_out_of_range(self):
-        self.assertRaises(ValueError, microversion_parse.extract_version,
-                          self.headers, 'service4', self.version_list)
+        self.assertRaises(
+            ValueError,
+            microversion_parse.extract_version,
+            self.headers,
+            'service4',
+            self.version_list,
+        )
