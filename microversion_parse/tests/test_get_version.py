@@ -203,10 +203,7 @@ class TestGetHeaders(testtools.TestCase):
         self.assertEqual('11.12', version)
 
     def test_no_headers(self):
-        headers = {}
-        version = microversion_parse.get_version(
-            headers, service_type='compute'
-        )
+        version = microversion_parse.get_version({}, service_type='compute')
         self.assertEqual(None, version)
 
     def test_unfolded_service(self):

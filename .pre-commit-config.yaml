@@ -24,3 +24,15 @@ repos:
       - id: hacking
         additional_dependencies: []
         exclude: '^(doc|releasenotes|tools)/.*$'
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-WebOb
+        # keep this in-sync with '[mypy] exclude' in 'pyproject.toml'
+        exclude: |
+          (?x)(
+            doc/.*
+            | releasenotes/.*
+          )
