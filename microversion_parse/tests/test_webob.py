@@ -53,7 +53,7 @@ class TestWebobHeaders(testtools.TestCase):
         headers = wb_headers.EnvironHeaders(
             {
                 'HTTP_HEADER_ONE': 'alpha',
-                'HTTP_OPENSTACK_API_VERSION': 'network 5.9 ,compute 2.1,telemetry 7.8',
+                'HTTP_OPENSTACK_API_VERSION': 'network 5.9 ,compute 2.1,telemetry 7.8',  # noqa: E501
                 'HTTP_HEADER_TWO': 'beta',
             }
         )
