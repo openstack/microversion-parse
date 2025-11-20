@@ -10,12 +10,26 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """WSGI middleware for getting microversion info."""
+
+from collections.abc import Sequence
+from typing import Any, Protocol, TYPE_CHECKING
 
 import webob
 import webob.dec
+import webob.exc
 
 import microversion_parse
+
+if TYPE_CHECKING:
+    from _typeshed.wsgi import WSGIApplication
+
+
+class _JSONFormatter(Protocol):
+    def __call__(
+        self, *, body: str, status: str, title: str, environ: dict[str, Any]
+    ) -> Any: ...
 
 
 class MicroversionMiddleware:
@@ -38,8 +52,12 @@ class MicroversionMiddleware:
     """
 
     def __init__(
-        self, application, service_type, versions, json_error_formatter=None
-    ):
+        self,
+        application: 'WSGIApplication | None',
+        service_type: str,
+        versions: Sequence[str],
+        json_error_formatter: _JSONFormatter | None = None,
+    ) -> None:
         """Create the WSGI middleware.
 
         :param application: The application hosting the service.
@@ -57,7 +75,10 @@ class MicroversionMiddleware:
         self.json_error_formatter = json_error_formatter
 
     @webob.dec.wsgify
-    def __call__(self, req):
+    def __call__(
+        self,
+        req: webob.request.Request,
+    ) -> webob.response.Response | None:
         try:
             microversion = microversion_parse.extract_version(
                 req.headers, self.service_type, self.versions

@@ -18,17 +18,13 @@ import microversion_parse
 
 class TestHeadersFromWSGIEnviron(testtools.TestCase):
     def test_empty_environ(self):
-        environ = {}
-        expected = {}
-        self.assertEqual(
-            expected, microversion_parse.headers_from_wsgi_environ(environ)
-        )
+        self.assertEqual({}, microversion_parse.headers_from_wsgi_environ({}))
 
     def test_non_empty_no_headers(self):
         environ = {'PATH_INFO': '/foo/bar'}
-        expected = {}
-        found_headers = microversion_parse.headers_from_wsgi_environ(environ)
-        self.assertEqual(expected, found_headers)
+        self.assertEqual(
+            {}, microversion_parse.headers_from_wsgi_environ(environ)
+        )
 
     def test_headers(self):
         environ = {
