@@ -13,10 +13,7 @@
 
 import collections
 from collections.abc import Iterable, MutableMapping, Sequence
-from typing import Any, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing_extensions import Self
+from typing import Any, Self
 
 ENVIRON_HTTP_HEADER_FMT = 'http_{}'
 STANDARD_HEADER = 'openstack-api-version'
