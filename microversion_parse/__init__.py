@@ -13,6 +13,7 @@
 
 import collections
 from collections.abc import Iterable, MutableMapping, Sequence
+import dataclasses
 from typing import Any, NamedTuple, Self
 
 ENVIRON_HTTP_HEADER_FMT = 'http_{}'
@@ -57,6 +58,77 @@ class Version(_VersionTuple):
         if max_version is None:
             max_version = self.max_version
         return min_version <= self <= max_version
+
+
+def _validate_version(version: Version) -> None:
+    if not isinstance(version, Version):
+        raise TypeError('expected a Version')
+    if any(type(part) is not int or part < 0 for part in version):
+        raise ValueError('version components must be non-negative integers')
+
+
+@dataclasses.dataclass(frozen=True)
+class VersionRange:
+    """An inclusive range of concrete microversions.
+
+    Omitted bounds are unrestricted within the supplied bound's major API
+    version. At least one bound must be provided.
+
+    :param minimum: Lower bound, or ``None`` for any minor version below
+        maximum.
+    :param maximum: Upper bound, or ``None`` for any minor version above
+        minimum.
+    :raises TypeError: A bound is not a :class:`Version`.
+    :raises ValueError: Both bounds are omitted, a bound has invalid
+        components, maximum < minimum, or the range spans API major versions.
+    """
+
+    minimum: Version | None = None
+    maximum: Version | None = None
+
+    def __post_init__(self) -> None:
+        if self.minimum is None and self.maximum is None:
+            raise ValueError('at least one version bound must be provided')
+
+        for version in (self.minimum, self.maximum):
+            if version is not None:
+                _validate_version(version)
+
+        if (
+            self.minimum is not None
+            and self.maximum is not None
+            and self.maximum < self.minimum
+        ):
+            raise ValueError('maximum version is less than minimum version')
+
+        if (
+            self.minimum is not None
+            and self.maximum is not None
+            and self.minimum.major != self.maximum.major
+        ):
+            # we don't allow range to span major API versions
+            raise ValueError(
+                'minimum and maximum versions use different major API versions'
+            )
+
+    def __contains__(self, version: Version) -> bool:
+        """Return whether a concrete version falls within these bounds.
+
+        :raises TypeError: The argument is not a :class:`Version`.
+        :raises ValueError: The version has invalid components.
+        """
+        _validate_version(version)
+        return (
+            self.minimum is None
+            or (
+                self.minimum.major == version.major and self.minimum <= version
+            )
+        ) and (
+            self.maximum is None
+            or (
+                self.maximum.major == version.major and version <= self.maximum
+            )
+        )
 
 
 def get_version(

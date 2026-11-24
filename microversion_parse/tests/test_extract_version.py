@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import operator
 
 import testtools
 
@@ -65,6 +66,200 @@ class TestVersion(testtools.TestCase):
 
     def test_version_init_failure(self):
         self.assertRaises(TypeError, microversion_parse.Version, 1, 2, 3)
+
+
+class TestVersionRange(testtools.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.version = microversion_parse.Version(2, 10)
+
+    def test_inclusive_bounds(self):
+        bounds = microversion_parse.VersionRange(
+            microversion_parse.Version(2, 9),
+            self.version,
+        )
+
+        self.assertFalse(microversion_parse.Version(2, 8) in bounds)
+        self.assertTrue(microversion_parse.Version(2, 9) in bounds)
+        self.assertTrue(self.version in bounds)
+        self.assertFalse(microversion_parse.Version(2, 11) in bounds)
+
+    def test_single_version(self):
+        bounds = microversion_parse.VersionRange(self.version, self.version)
+
+        self.assertTrue(self.version in bounds)
+        self.assertFalse(microversion_parse.Version(2, 9) in bounds)
+        self.assertFalse(microversion_parse.Version(2, 11) in bounds)
+
+    def test_no_minimum(self):
+        bounds = microversion_parse.VersionRange(maximum=self.version)
+
+        self.assertTrue(microversion_parse.Version(2, 9) in bounds)
+        self.assertTrue(self.version in bounds)
+        self.assertFalse(microversion_parse.Version(2, 11) in bounds)
+        self.assertFalse(microversion_parse.Version(1, 99) in bounds)
+        self.assertFalse(microversion_parse.Version(3, 0) in bounds)
+
+    def test_no_maximum(self):
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertFalse(microversion_parse.Version(2, 9) in bounds)
+        self.assertTrue(self.version in bounds)
+        self.assertTrue(microversion_parse.Version(2, 11) in bounds)
+        self.assertFalse(microversion_parse.Version(1, 99) in bounds)
+        self.assertFalse(microversion_parse.Version(3, 0) in bounds)
+
+    def test_no_bounds(self):
+        self.assertRaises(ValueError, microversion_parse.VersionRange)
+
+    def test_version_zero_can_match(self):
+        version = microversion_parse.Version(0, 0)
+        bounds = microversion_parse.VersionRange(version, version)
+
+        self.assertTrue(version in bounds)
+
+    def test_maximum_less_than_minimum(self):
+        self.assertRaises(
+            ValueError,
+            microversion_parse.VersionRange,
+            self.version,
+            microversion_parse.Version(2, 9),
+        )
+
+    def test_maximum_major_less_than_minimum(self):
+        self.assertRaises(
+            ValueError,
+            microversion_parse.VersionRange,
+            microversion_parse.Version(2, 0),
+            microversion_parse.Version(1, 100),
+        )
+
+    def test_different_major_version_bounds(self):
+        self.assertRaises(
+            ValueError,
+            microversion_parse.VersionRange,
+            microversion_parse.Version(1, 99),
+            microversion_parse.Version(2, 1),
+        )
+
+    def test_negative_major(self):
+        version = microversion_parse.Version(-1, 0)
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, minimum=version
+        )
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, maximum=version
+        )
+        self.assertRaises(ValueError, operator.contains, bounds, version)
+
+    def test_negative_minor(self):
+        version = microversion_parse.Version(2, -1)
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, minimum=version
+        )
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, maximum=version
+        )
+        self.assertRaises(ValueError, operator.contains, bounds, version)
+
+    def test_boolean_component(self):
+        version = microversion_parse.Version(True, 1)
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, minimum=version
+        )
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, maximum=version
+        )
+        self.assertRaises(ValueError, operator.contains, bounds, version)
+
+    def test_non_integer_component(self):
+        version = microversion_parse.Version(2, 1.5)  # type: ignore[arg-type]
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, minimum=version
+        )
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, maximum=version
+        )
+        self.assertRaises(ValueError, operator.contains, bounds, version)
+
+    def test_string_component(self):
+        version = microversion_parse.Version('2', 1)  # type: ignore[arg-type]
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, minimum=version
+        )
+        self.assertRaises(
+            ValueError, microversion_parse.VersionRange, maximum=version
+        )
+        self.assertRaises(ValueError, operator.contains, bounds, version)
+
+    def test_string_not_version(self):
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            TypeError, microversion_parse.VersionRange, minimum='2.1'
+        )
+        self.assertRaises(
+            TypeError, microversion_parse.VersionRange, maximum='2.1'
+        )
+        self.assertRaises(TypeError, operator.contains, bounds, '2.1')
+
+    def test_latest_not_version(self):
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            TypeError, microversion_parse.VersionRange, minimum='latest'
+        )
+        self.assertRaises(
+            TypeError, microversion_parse.VersionRange, maximum='latest'
+        )
+        self.assertRaises(TypeError, operator.contains, bounds, 'latest')
+
+    def test_integer_not_version(self):
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            TypeError, microversion_parse.VersionRange, minimum=1
+        )
+        self.assertRaises(
+            TypeError, microversion_parse.VersionRange, maximum=1
+        )
+        self.assertRaises(TypeError, operator.contains, bounds, 1)
+
+    def test_tuple_not_version(self):
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(
+            TypeError, microversion_parse.VersionRange, minimum=(2, 1)
+        )
+        self.assertRaises(
+            TypeError, microversion_parse.VersionRange, maximum=(2, 1)
+        )
+        self.assertRaises(TypeError, operator.contains, bounds, (2, 1))
+
+    def test_contains_none(self):
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertRaises(TypeError, operator.contains, bounds, None)
+
+    def test_service_bounds_are_ignored(self):
+        self.version.min_version = (2, 11)
+        self.version.max_version = (2, 20)
+        bounds = microversion_parse.VersionRange(minimum=self.version)
+
+        self.assertFalse(self.version.matches())
+        self.assertTrue(self.version in bounds)
+        self.assertTrue(microversion_parse.Version(2, 11) in bounds)
+        self.assertFalse(microversion_parse.Version(2, 9) in bounds)
 
 
 class TestParseVersionString(testtools.TestCase):

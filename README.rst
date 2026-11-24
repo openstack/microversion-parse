@@ -28,6 +28,33 @@ returns the ``'major.minor'`` representation:
 from the supported versions list. Otherwise, both attributes default to
 ``(-1, 0)``.
 
+``VersionRange``
+----------------
+
+An inclusive range of concrete ``Version`` objects, useful for matching schema
+or handler version bounds:
+
+.. code-block:: python
+
+    bounds = microversion_parse.VersionRange(
+        minimum=microversion_parse.parse_version_string('2.9'),
+        maximum=microversion_parse.parse_version_string('2.10'),
+    )
+    microversion_parse.Version(2, 9) in bounds  # True
+    microversion_parse.Version(2, 10) in bounds  # True
+    microversion_parse.Version(2, 11) in bounds  # False
+
+Either bound can be omitted or set to ``None`` for an unbounded end within
+that major API version. For example, a range with minimum ``Version(2, 0)``
+and no maximum includes any 2.x version, but not ``Version(3, 0)``. Explicit
+bounds must use the same major API version.
+
+At least one bound must be provided; omitting both raises ``ValueError``.
+Unlike ``Version.matches()``, ranges never use the ``min_version`` or
+``max_version``
+service bounds stored on version objects. Existing ``Version.matches()``
+behavior is unchanged.
+
 ``get_version``
 ---------------
 
