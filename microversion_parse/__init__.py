@@ -13,13 +13,18 @@
 
 import collections
 from collections.abc import Iterable, MutableMapping, Sequence
-from typing import Any, Self
+from typing import Any, NamedTuple, Self
 
 ENVIRON_HTTP_HEADER_FMT = 'http_{}'
 STANDARD_HEADER = 'openstack-api-version'
 
 
-class Version(collections.namedtuple('Version', 'major minor')):
+class _VersionTuple(NamedTuple):
+    major: int
+    minor: int
+
+
+class Version(_VersionTuple):
     """A namedtuple containing major and minor values.
 
     Since it is a tuple, it is automatically comparable.

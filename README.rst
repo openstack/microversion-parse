@@ -8,6 +8,26 @@ manage microversions.
 Also included, in the ``middleware`` module, is a ``MicroversionMiddleware``
 that will process incoming microversion headers.
 
+``Version``
+-----------
+
+A ``namedtuple`` with integer ``major`` and ``minor`` fields. Versions can be
+compared with each other or with ``(major, minor)`` tuples, and ``str(version)``
+returns the ``'major.minor'`` representation:
+
+.. code-block:: python
+
+    version = microversion_parse.Version(2, 10)
+    assert version.major == 2
+    assert version > (2, 9)
+    assert str(version) == '2.10'
+    assert version.matches(min_version=(2, 1), max_version=(2, 20))
+
+``matches`` checks an inclusive range. Omitted bounds use the instance's
+``min_version`` and ``max_version`` attributes, which ``extract_version`` sets
+from the supported versions list. Otherwise, both attributes default to
+``(-1, 0)``.
+
 ``get_version``
 ---------------
 
