@@ -111,6 +111,12 @@ class VersionRange:
                 'minimum and maximum versions use different major API versions'
             )
 
+    @property
+    def _major(self) -> int:
+        bound = self.minimum if self.minimum is not None else self.maximum
+        assert bound is not None
+        return bound.major
+
     def __contains__(self, version: Version) -> bool:
         """Return whether a concrete version falls within these bounds.
 
@@ -129,6 +135,39 @@ class VersionRange:
                 self.maximum.major == version.major and version <= self.maximum
             )
         )
+
+    def __and__(self, other: 'VersionRange') -> 'VersionRange | None':
+        """Return the intersection, or ``None`` for disjoint ranges.
+
+        Ranges with different major API versions are always disjoint.
+        """
+        if not isinstance(other, VersionRange):
+            return NotImplemented
+
+        if self._major != other._major:
+            return None
+
+        minimum = max(
+            (v for v in (self.minimum, other.minimum) if v is not None),
+            default=None,
+        )
+        maximum = min(
+            (v for v in (self.maximum, other.maximum) if v is not None),
+            default=None,
+        )
+        if minimum is not None and maximum is not None and minimum > maximum:
+            return None
+
+        return VersionRange(minimum, maximum)
+
+    def overlaps(self, other: 'VersionRange') -> bool:
+        """Return whether two ranges share at least one version.
+
+        Sharing an inclusive endpoint counts as overlap. Ranges with different
+        major API versions never overlap. Disjoint ranges may be adjacent or
+        have a gap; this method imposes no coverage policy.
+        """
+        return (self & other) is not None
 
 
 def get_version(

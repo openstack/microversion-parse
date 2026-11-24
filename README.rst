@@ -55,6 +55,19 @@ Unlike ``Version.matches()``, ranges never use the ``min_version`` or
 service bounds stored on version objects. Existing ``Version.matches()``
 behavior is unchanged.
 
+The ``overlaps(other)`` method checks whether two ranges share any version.
+Sharing an inclusive endpoint counts as overlap:
+
+.. code-block:: python
+
+    newer = microversion_parse.VersionRange(
+        minimum=microversion_parse.parse_version_string('2.10'),
+    )
+    bounds.overlaps(newer)  # True: both contain 2.10
+
+Ranges with different major API versions are always disjoint:
+``overlaps()`` returns ``False`` and intersection (``&``) returns ``None``.
+
 ``get_version``
 ---------------
 
