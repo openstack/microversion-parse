@@ -60,11 +60,12 @@ class Version(_VersionTuple):
         return min_version <= self <= max_version
 
 
-def _validate_version(version: Version) -> None:
+def _validate_version(version: object) -> Version:
     if not isinstance(version, Version):
         raise TypeError('expected a Version')
     if any(type(part) is not int or part < 0 for part in version):
         raise ValueError('version components must be non-negative integers')
+    return version
 
 
 @dataclasses.dataclass(frozen=True)
@@ -117,13 +118,13 @@ class VersionRange:
         assert bound is not None
         return bound.major
 
-    def __contains__(self, version: Version) -> bool:
+    def __contains__(self, version: object) -> bool:
         """Return whether a concrete version falls within these bounds.
 
         :raises TypeError: The argument is not a :class:`Version`.
         :raises ValueError: The version has invalid components.
         """
-        _validate_version(version)
+        version = _validate_version(version)
         return (
             self.minimum is None
             or (
