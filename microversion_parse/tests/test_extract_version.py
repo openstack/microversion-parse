@@ -79,35 +79,35 @@ class TestVersionRange(testtools.TestCase):
             self.version,
         )
 
-        self.assertFalse(microversion_parse.Version(2, 8) in bounds)
-        self.assertTrue(microversion_parse.Version(2, 9) in bounds)
-        self.assertTrue(self.version in bounds)
-        self.assertFalse(microversion_parse.Version(2, 11) in bounds)
+        self.assertNotIn(microversion_parse.Version(2, 8), bounds)
+        self.assertIn(microversion_parse.Version(2, 9), bounds)
+        self.assertIn(self.version, bounds)
+        self.assertNotIn(microversion_parse.Version(2, 11), bounds)
 
     def test_single_version(self):
         bounds = microversion_parse.VersionRange(self.version, self.version)
 
-        self.assertTrue(self.version in bounds)
-        self.assertFalse(microversion_parse.Version(2, 9) in bounds)
-        self.assertFalse(microversion_parse.Version(2, 11) in bounds)
+        self.assertIn(self.version, bounds)
+        self.assertNotIn(microversion_parse.Version(2, 9), bounds)
+        self.assertNotIn(microversion_parse.Version(2, 11), bounds)
 
     def test_no_minimum(self):
         bounds = microversion_parse.VersionRange(maximum=self.version)
 
-        self.assertTrue(microversion_parse.Version(2, 9) in bounds)
-        self.assertTrue(self.version in bounds)
-        self.assertFalse(microversion_parse.Version(2, 11) in bounds)
-        self.assertFalse(microversion_parse.Version(1, 99) in bounds)
-        self.assertFalse(microversion_parse.Version(3, 0) in bounds)
+        self.assertIn(microversion_parse.Version(2, 9), bounds)
+        self.assertIn(self.version, bounds)
+        self.assertNotIn(microversion_parse.Version(2, 11), bounds)
+        self.assertNotIn(microversion_parse.Version(1, 99), bounds)
+        self.assertNotIn(microversion_parse.Version(3, 0), bounds)
 
     def test_no_maximum(self):
         bounds = microversion_parse.VersionRange(minimum=self.version)
 
-        self.assertFalse(microversion_parse.Version(2, 9) in bounds)
-        self.assertTrue(self.version in bounds)
-        self.assertTrue(microversion_parse.Version(2, 11) in bounds)
-        self.assertFalse(microversion_parse.Version(1, 99) in bounds)
-        self.assertFalse(microversion_parse.Version(3, 0) in bounds)
+        self.assertNotIn(microversion_parse.Version(2, 9), bounds)
+        self.assertIn(self.version, bounds)
+        self.assertIn(microversion_parse.Version(2, 11), bounds)
+        self.assertNotIn(microversion_parse.Version(1, 99), bounds)
+        self.assertNotIn(microversion_parse.Version(3, 0), bounds)
 
     def test_no_bounds(self):
         self.assertRaises(ValueError, microversion_parse.VersionRange)
@@ -116,7 +116,7 @@ class TestVersionRange(testtools.TestCase):
         version = microversion_parse.Version(0, 0)
         bounds = microversion_parse.VersionRange(version, version)
 
-        self.assertTrue(version in bounds)
+        self.assertIn(version, bounds)
 
     def test_maximum_less_than_minimum(self):
         self.assertRaises(
@@ -257,9 +257,9 @@ class TestVersionRange(testtools.TestCase):
         bounds = microversion_parse.VersionRange(minimum=self.version)
 
         self.assertFalse(self.version.matches())
-        self.assertTrue(self.version in bounds)
-        self.assertTrue(microversion_parse.Version(2, 11) in bounds)
-        self.assertFalse(microversion_parse.Version(2, 9) in bounds)
+        self.assertIn(self.version, bounds)
+        self.assertIn(microversion_parse.Version(2, 11), bounds)
+        self.assertNotIn(microversion_parse.Version(2, 9), bounds)
 
     def test_overlapping_overlap(self):
         left = microversion_parse.VersionRange(

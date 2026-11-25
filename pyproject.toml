@@ -69,12 +69,14 @@ quote-style = "single"
 docstring-code-format = true
 
 [tool.ruff.lint]
-select = ["E4", "E5", "E7", "E9", "F", "G", "LOG", "S", "UP"]
+select = ["ANN", "E", "F", "G", "ISC", "LOG", "RUF", "S", "PYI", "UP", "W"]
 external = ["H"]
 ignore = [
+    # this needs a lot more work before we can enable it
+    "ANN401",
     # we only use asserts for type narrowing
     "S101",
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"microversion_parse/tests/*" = ["S"]
+"microversion_parse/tests/*" = ["ANN", "S", "PYI"]

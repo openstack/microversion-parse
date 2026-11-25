@@ -13,8 +13,14 @@ repos:
       - id: check-yaml
         files: .*\.(yaml|yml)$
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.18
+    rev: v0.17.6
     hooks:
       - id: ruff-check
         args: ['--fix', '--unsafe-fixes']
       - id: ruff-format
+  - repo: https://opendev.org/openstack/hacking
+    rev: 8.1.0
+    hooks:
+      - id: hacking
+        additional_dependencies: []
+        exclude: '^(doc|releasenotes)/.*$'
