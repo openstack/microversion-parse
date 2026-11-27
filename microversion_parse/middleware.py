@@ -14,16 +14,14 @@
 """WSGI middleware for getting microversion info."""
 
 from collections.abc import Sequence
-from typing import Any, Protocol, TYPE_CHECKING
+from typing import Any, Protocol
+from wsgiref.types import WSGIApplication
 
 import webob
 import webob.dec
 import webob.exc
 
 import microversion_parse
-
-if TYPE_CHECKING:
-    from _typeshed.wsgi import WSGIApplication
 
 
 class _JSONFormatter(Protocol):
@@ -53,7 +51,7 @@ class MicroversionMiddleware:
 
     def __init__(
         self,
-        application: 'WSGIApplication | None',
+        application: WSGIApplication | None,
         service_type: str,
         versions: Sequence[str],
         json_error_formatter: _JSONFormatter | None = None,
